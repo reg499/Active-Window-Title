@@ -10,7 +10,9 @@ public class Programa
     [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
     private static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
-
+    [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+    
     public static string ObtenerTituloVentanaActiva()
     {
         try
@@ -18,9 +20,15 @@ public class Programa
             const int nChars = 256;
             StringBuilder buff = new StringBuilder(nChars);
             IntPtr handle = GetForegroundWindow();
+            
             if (GetWindowText(handle, buff, nChars) > 0)
             {
-                return buff.ToString();
+                uint processId;
+                GetWindowThreadProcessId(handle, out processId);
+
+                Process process = Process.GetProcessById((int)processId);
+
+                return $"{buff} - {process.ProcessName}.exe";
             }
         }
         catch (Exception ex)
